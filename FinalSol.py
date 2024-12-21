@@ -14,17 +14,16 @@ def get_transform(matches, is_affine):
     src_cords=matches[:, 0]
     dst_cords=matches[:, 1]
     if not is_affine:
-        T, _ = cv2.findHomography(src_cords, dst_cords)
+        result, _ = cv2.findHomography(src_cords, dst_cords)
     else:
-        T, _ = cv2.estimateAffine2D(src_cords, dst_cords)
+        result, _ = cv2.estimateAffine2D(src_cords, dst_cords)
 
-    return T
+    return result
 
 
 def stitch(img1, img2):
-    #find max value of each pixel in the images
-    combined = cv2.max(img1, img2)
-    return combined
+    #find and return max value of each pixel in the images
+    return cv2.max(img1, img2)
 
 
 
@@ -83,21 +82,16 @@ if __name__ == '__main__':
             #if we're looking at the first peice (which we already used) just skip iteraton
             if filename == 'piece_1.jpg':
                 continue
-
             # get transform to place piece onto the final puzzle
             transform = get_transform(matches[i - 1], is_affine)
-
             # load current piece and inverse transform it
             curr_image = cv2.imread(os.path.join(pieces_path, filename))
             inverse_piece = inverse_transform_target_image(curr_image, transform, (w, h))
-
             # save inverted image
             outpath = os.path.join(edited, f'{filename.split(".")[0]}_relative.jpg')
             cv2.imwrite(outpath, inverse_piece)
-
             # stitch it into the puzzle
             final_puzzle = stitch(final_puzzle, inverse_piece)
-        # End of "Add your code here"
 
         sol_file = f"solution.jpg"
         cv2.imwrite(os.path.join(puzzle, sol_file), final_puzzle)
