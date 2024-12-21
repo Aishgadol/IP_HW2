@@ -81,6 +81,8 @@ if __name__ == '__main__':
         for i, filename in enumerate(all_pieces):
             #if we're looking at the first peice (which we already used) just skip iteraton
             if filename == 'piece_1.jpg':
+                outpath = os.path.join(edited, f'{filename.split(".")[0]}_absolute.jpg')
+                cv2.imwrite(outpath, final_puzzle)
                 continue
             # get transform to place piece onto the final puzzle
             transform = get_transform(matches[i - 1], is_affine)
@@ -88,7 +90,7 @@ if __name__ == '__main__':
             curr_image = cv2.imread(os.path.join(pieces_path, filename))
             inverse_piece = inverse_transform_target_image(curr_image, transform, (w, h))
             # save inverted image
-            outpath = os.path.join(edited, f'{filename.split(".")[0]}_relative.jpg')
+            outpath = os.path.join(edited, f'{filename.split(".")[0]}_absolute.jpg')
             cv2.imwrite(outpath, inverse_piece)
             # stitch it into the puzzle
             final_puzzle = stitch(final_puzzle, inverse_piece)

@@ -14,17 +14,16 @@ def get_transform(matches, is_affine):
     src_cords=matches[:, 0]
     dst_cords=matches[:, 1]
     if not is_affine:
-        T, _ = cv2.findHomography(src_cords, dst_cords)
+        result, _ = cv2.findHomography(src_cords, dst_cords)
     else:
-        T, _ = cv2.estimateAffine2D(src_cords, dst_cords)
+        result, _ = cv2.estimateAffine2D(src_cords, dst_cords)
 
-    return T
+    return result
 
 
 def stitch(img1, img2):
-    #find max value of each pixel in the images
-    combined = cv2.max(img1, img2)
-    return combined
+    #find and return max value of each pixel in the images
+    return cv2.max(img1, img2)
 
 
 
@@ -33,12 +32,12 @@ def inverse_transform_target_image(target_img, original_transform, output_size):
     if not original_transform.shape == (2, 3):
         # homography case
         inverse_h = np.linalg.inv(original_transform)
-        warped = cv2.warpPerspective(target_img, inverse_h, output_size, flags=cv2.INTER_LINEAR)
+        result = cv2.warpPerspective(target_img, inverse_h, output_size, flags=cv2.INTER_LINEAR)
     else:
         # affine case
         inverse_aff = cv2.invertAffineTransform(original_transform)
-        warped = cv2.warpAffine(target_img, inverse_aff, output_size, output_size, flags=cv2.INTER_LINEAR)
-    return warped
+        result = cv2.warpAffine(target_img, inverse_aff, output_size, output_size, flags=cv2.INTER_LINEAR)
+    return result
 
 
 # returns list of pieces file names
@@ -82,22 +81,19 @@ if __name__ == '__main__':
         for i, filename in enumerate(all_pieces):
             #if we're looking at the first peice (which we already used) just skip iteraton
             if filename == 'piece_1.jpg':
+                outpath = os.path.join(edited, f'{filename.split(".")[0]}_absolute.jpg')
+                cv2.imwrite(outpath, final_puzzle)
                 continue
-
             # get transform to place piece onto the final puzzle
             transform = get_transform(matches[i - 1], is_affine)
-
             # load current piece and inverse transform it
             curr_image = cv2.imread(os.path.join(pieces_path, filename))
             inverse_piece = inverse_transform_target_image(curr_image, transform, (w, h))
-
             # save inverted image
-            outpath = os.path.join(edited, f'{filename.split(".")[0]}_relative.jpg')
+            outpath = os.path.join(edited, f'{filename.split(".")[0]}_absolute.jpg')
             cv2.imwrite(outpath, inverse_piece)
-
             # stitch it into the puzzle
             final_puzzle = stitch(final_puzzle, inverse_piece)
-        # End of "Add your code here"
 
         sol_file = f"solution.jpg"
         cv2.imwrite(os.path.join(puzzle, sol_file), final_puzzle)
