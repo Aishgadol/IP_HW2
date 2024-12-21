@@ -1,0 +1,12 @@
+## image 2
+# first matching
+517 130		#img1
+240 276		#img2
+
+# second matching
+355 385		#img1
+33 188		#img2
+
+# third matching
+252 67		#img1
+275 107		#img2
